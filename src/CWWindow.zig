@@ -61,6 +61,7 @@ pub const Window = struct {
             -1,
             sdl.SDL_RENDERER_ACCELERATED,
         ) orelse return error.SDLRendererNotInitialised;
+
         // Initialise cell grids
         const grid = try defs.allocator.create(Canvas);
         grid.* = try Canvas.init(cols, rows);
@@ -92,6 +93,7 @@ pub const Window = struct {
     }
 
     pub fn deinit(self: Window) void {
+        sdl.SDL_DestroyRenderer(self.renderer);
         sdl.SDL_DestroyWindow(self.window);
         self.grid.deinit();
         defs.allocator.destroy(self.grid);

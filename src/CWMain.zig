@@ -4,12 +4,36 @@ const sdl = defs.sdl;
 const ttf = defs.ttf;
 const Window = @import("CWWindow.zig").Window;
 const stdout = std.debug;
-const LocalTime = @cImport(@cInclude("LocalTime.c"));
+
+// from <time.h>
+const tm = extern struct {
+    tm_sec: c_int, // seconds after the minute - [0, 60] including leap second
+    tm_min: c_int, // minutes after the hour - [0, 59]
+    tm_hour: c_int, // hours since midnight - [0, 23]
+    tm_mday: c_int, // day of the month - [1, 31]
+    tm_mon: c_int, // months since January - [0, 11]
+    tm_year: c_int, // years since 1900
+    tm_wday: c_int, // days since Sunday - [0, 6]
+    tm_yday: c_int, // days since January 1 - [0, 365]
+    tm_isdst: c_int, // daylight savings time flag
+};
+const time_t = c_longlong;
+extern fn time(*time_t) callconv(.C) time_t;
+extern fn localtime(*time_t) callconv(.C) *tm;
+
+fn GetLocalTime(hour: *u8, minute: *u8, second: *u8) void {
+    var current: time_t = undefined;
+    _ = time(&current);
+    const localtm: *tm = localtime(&current);
+    hour.* = @intCast(localtm.tm_hour);
+    minute.* = @intCast(localtm.tm_min);
+    second.* = @intCast(localtm.tm_sec);
+}
 
 pub fn main() !void {
-    stdout.print("[GrottoDive.exe - info & debug]\n", .{});
+    stdout.print("[Conway Life Game Clock - info & debug]\n", .{});
     // Initialise SDL
-    if (sdl.SDL_Init(sdl.SDL_INIT_TIMER | sdl.SDL_INIT_JOYSTICK) != 0) {
+    if (sdl.SDL_Init(sdl.SDL_INIT_VIDEO | sdl.SDL_INIT_TIMER | sdl.SDL_INIT_JOYSTICK) != 0) {
         stdout.print("Error loading SDL: {s}\n", .{sdl.SDL_GetError()});
         return error.SDLNotInitialised;
     }
@@ -44,7 +68,7 @@ pub fn main() !void {
         _ = sdl.SDL_RenderPresent(window.renderer);
         _ = sdl.SDL_SetRenderDrawColor(window.renderer, 0, 0, 0, 255);
         _ = sdl.SDL_RenderClear(window.renderer);
-        LocalTime.GetLocalTime(&hour, &minute, &second);
+        GetLocalTime(&hour, &minute, &second);
         if (second != prevsec) {
             prevsec = second;
             window.SetText(hour, minute, second);
