@@ -40,15 +40,23 @@ pub const Window = struct {
     pub fn init() !Window {
         var w: c_int = undefined;
         var h: c_int = undefined;
-        const wnd: pWindow = sdl.SDL_CreateWindow(
-            defs.WINDOW_TITLE,
+        // Prepare full screen (stable alternative for linux)
+        var dm: sdl.SDL_DisplayMode = undefined;
+        if (sdl.SDL_GetDisplayMode(0, 0, &dm) != 0) {
+            std.debug.print("SDL GetDisplayMode error: {s}\n", .{sdl.SDL_GetError()});
+            return error.sdl_initialisationerror;
+        }
+        const wnd: *sdl.SDL_Window = sdl.SDL_CreateWindow(
+            "Game window",
             0,
             0,
-            1600,
-            900,
-            sdl.SDL_WINDOW_FULLSCREEN_DESKTOP,
-        ) orelse
-            return error.SDLWindowNotInitialised;
+            dm.w,
+            dm.h,
+            sdl.SDL_WINDOW_BORDERLESS | sdl.SDL_WINDOW_MAXIMIZED,
+        ) orelse {
+            std.debug.print("SDL window creation failed: {s}\n", .{sdl.SDL_GetError()});
+            return error.sdl_initialisationerror;
+        };
         errdefer sdl.SDL_DestroyWindow(wnd);
         // Determine dimensions
         sdl.SDL_GetWindowSize(wnd, &w, &h);
