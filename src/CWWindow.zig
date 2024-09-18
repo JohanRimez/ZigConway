@@ -67,7 +67,7 @@ pub const Window = struct {
         const renderer = sdl.SDL_CreateRenderer(
             wnd,
             -1,
-            sdl.SDL_RENDERER_ACCELERATED,
+            sdl.SDL_RENDERER_ACCELERATED | sdl.SDL_RENDERER_PRESENTVSYNC,
         ) orelse return error.SDLRendererNotInitialised;
 
         // Initialise cell grids

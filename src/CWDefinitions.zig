@@ -1,6 +1,6 @@
 const std = @import("std");
 //SDL constants
-pub const sdl = @import("SDLimport.zig");
+pub const sdl = @import("cImport.zig");
 pub const pWindow = *sdl.SDL_Window;
 pub const pRenderer = *sdl.SDL_Renderer;
 pub const pSurface = *sdl.SDL_Surface;
